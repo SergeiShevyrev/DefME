@@ -63,7 +63,7 @@ gamma=0.9; #Kernel coefficient for ‘rbf’, ‘poly’ and ‘sigmoid’.
 
 #Configuration for model extrapolation on the new area (need to define folders for 'mineral' images)
 #files with "_new" postfix are related to 
-filedir_model=os.path.join("..","data");
+filedir_model=os.path.join("..","model");
 model_maxent_name='maxent_model_DPCA_OCSVM.p';
 pathrowfolder_new="104_029"
 datefolder_new="2019_10_16"
