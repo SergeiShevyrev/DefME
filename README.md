@@ -1,3 +1,5 @@
+DefME Software description
+
 DefMe is a set of Python scripts that provides users and developers with tools for atmospheric and topographic correction of spaceborne images, synthesis of indexes (products), implementing vector points of in-situ observation data, configuring and training of MaxEnt model and computing raster of target variable distribution. Scripts are organized accordingly to stages of research and purposes of each stage (Table 1). General description of the script set is given in Section 2.1. Subsequent details of software functions are presented in Section 2.2.
 
 Description of files in the script set:
