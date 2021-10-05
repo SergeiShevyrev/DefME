@@ -4,7 +4,7 @@ from mygdal_functions0_9 import *
 import matplotlib.pyplot as plt
 import os
 import pandas as pd
-import time;
+import time, datetime;
 from sklearn.preprocessing import scale
 from sklearn import decomposition
 import copy;
@@ -16,7 +16,8 @@ import pickle
 #one class SVM
 from sklearn import svm, metrics
 #selecting training and testing set
-from sklearn.model_selection import train_test_split
+from sklearn.model_selection import train_test_split, GridSearchCV,KFold
+from sklearn.preprocessing import StandardScaler
 import random
 from sklearn.inspection import plot_partial_dependence, partial_dependence
 
@@ -27,6 +28,10 @@ from configuration import *
 """
 Respect to scikit-learn official website:
 ### https://scikit-learn.org/0.15/modules/generated/sklearn.svm.OneClassSVM.html
+Grid search parameters optimization technique:
+### https://scikit-learn.org/stable/modules/generated/sklearn.model_selection.GridSearchCV.html    
+    https://scikit-learn.org/stable/auto_examples/model_selection/plot_grid_search_digits.html
+    
 """
 
 #1 Settings
@@ -89,6 +94,7 @@ for colname in dpc1_columns:
 #select ores only records
 idx_ore=np.array(model_data_df[ore_key]==1);    
 ore_data_np_array=all_data_np_array[idx_ore,:];  #select np array with data corresponding to ore only 
+non_ore_idx=model_data_df.index[model_data_df[ore_key] == 0].tolist();
 
 roc_auc_list=[];
 
@@ -102,12 +108,28 @@ params_train,params_test=train_test_split(ore_data_np_array[:,3:], test_size=0.2
 #teach OneSVM model
 
 # Standardize features
-mean = params_train[:,0:].mean(axis=0) #average for the training array, for each layer
-                                        #
-std = params_train[:,0:].std(axis=0)   #standard deviation for the training array
-train_cover_std = (params_train[:,0:] - mean) / std          #relative std for each item
-                                                            #training array
-                                                            #it is used for training
+train_cover_std = StandardScaler().fit_transform(params_train[:,0:]); #training array 
+
+                                                           
+#define optimal parameters with GridSearchCV
+if fit_params==True:
+    clf = GridSearchCV(estimator=svm.OneClassSVM(),param_grid=parameters,refit=True,scoring='adjusted_rand_score'); #['adjusted_rand_score','r2',]
+    
+    bgrd_rand_idx=random.sample(non_ore_idx, int(len(params_train[:,0]))); #select non-occurence data as much as occurence
+    non_ore_data_std=StandardScaler().fit_transform(all_data_np_array[bgrd_rand_idx,3:]);
+    
+    
+    #stack occurence/non-occurence observation
+    records=np.r_[non_ore_data_std,train_cover_std];
+    occurences=np.r_[np.zeros(non_ore_data_std.shape[0]).T,np.ones(train_cover_std.shape[0]).T];
+    
+    clf.fit(records,occurences);
+    
+    print(clf.best_params_);    
+    gamma=clf.best_params_['gamma'];
+    nu=clf.best_params_['nu'];
+    kernel=clf.best_params_['kernel'];
+    
 # Fit OneClassSVM
 print(" - fit OneClassSVM ... ", end='')
 clf = svm.OneClassSVM(nu=nu, kernel=kernel, gamma=gamma)  #model регрессор svm.OneClassSVM(nu=0.1, kernel="rbf", gamma=0.4) 
@@ -115,7 +137,8 @@ clf = svm.OneClassSVM(nu=nu, kernel=kernel, gamma=gamma)  #model регресс�
 clf.fit(train_cover_std)        #training the model (data formatted: string - parameter, column - cell)
                                
 #prediction 
-all_data_std=(all_data_np_array[:,3:] - mean) / std;                         
+#all_data_std=(all_data_np_array[:,3:] - mean) / std;  
+all_data_std=StandardScaler().fit_transform(all_data_np_array[:,3:]);                    
 pred = clf.decision_function(all_data_std) #prediction of distribution values
 
 #normalization of the results
@@ -126,14 +149,19 @@ pred_norm=(pred-pred.min())/(pred.max()-pred.min());
 # Compute AUC with regards to background points
 
 #selection of predicted values for barren pixels
-non_ore_idx=model_data_df.index[model_data_df[ore_key] == 0].tolist()
+#non_ore_idx=model_data_df.index[model_data_df[ore_key] == 0].tolist()
 bgrd_rand_idx=random.sample(non_ore_idx, int(len(params_test[:,0])));
 pred_background = pred[bgrd_rand_idx];
 
 
 #test
 #standardize within each sample
+
+
+train_cover_std_test=StandardScaler().fit_transform(params_test[:,0:]);
+"""
 train_cover_std_test = (params_test[:,0:] - mean) / std
+"""
 all_data_std_train,all_data_std_test=train_test_split(all_data_std, test_size=0.01,random_state=42);
 pred_test = clf.decision_function(train_cover_std_test)
 
@@ -152,7 +180,7 @@ plt.plot([0,1],[0,1],'--')
 plt.xlabel('False positive rate');
 plt.ylabel('True positive rate');
 plt.title('Area under the ROC curve : {0:.{1}f}'.format(roc_auc,4));
-plt.legend()
+plt.legend();
 plt.savefig('ROC-curve_prediction_probability.png',dpi=300);
 plt.savefig('ROC-curve_prediction_probability.svg',dpi=300);
 plt.show();
@@ -209,7 +237,16 @@ fig.subplots_adjust(hspace=0.7)
 #fig.text(0.06, 0.5, 'common ylabel', ha='center', va='center', rotation='vertical')
 fig.savefig('Partial_dependence_training.svg',dpi=300);
 fig.savefig('Partial_dependence_training.png',dpi=300);    
-    
+
+#save model parameters into model.log file
+moment = datetime.datetime.now();
+dt_str= moment.strftime("%d/%m/%Y %H:%M:%S");
+log_output_str='{} svm.OneClassSVM(nu={}, kernel={}, gamma={})'.format(dt_str,nu,kernel,gamma);
+
+log_file = open("model.log", "a");
+log_file.write(log_output_str);
+log_file.write('\r\n');
+log_file.close();    
     
 #save model into file
 with open(model_filename, 'wb') as f:
