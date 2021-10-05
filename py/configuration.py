@@ -57,13 +57,19 @@ selects_NDVI_classes=[1,2];
 prefix=["dpc1","dpc2"]; #only two values are allowed
 
 #model configuration parameters
+fit_params=True; #if True, oneClassSVM model uses GridSearch  to fit nu and gamma
 nu=0.1; #An upper bound on the fraction of training errors and a lower bound of the fraction of support vectors.
 kernel="rbf"; #kernel function
 gamma=0.9; #Kernel coefficient for ‘rbf’, ‘poly’ and ‘sigmoid’.
+#parameters considered as range for GridSearch fit if dont_fit=True
+parameters = {'kernel':['rbf'],
+              'nu':[float(nu)/10 for nu in range(1,10)],
+              'gamma':[float(gamma)/10 for gamma in range(1,10)]
+              }
 
 #Configuration for model extrapolation on the new area (need to define folders for 'mineral' images)
 #files with "_new" postfix are related to 
-filedir_model=os.path.join("..","model");
+filedir_model=os.path.join("..","data");
 model_maxent_name='maxent_model_DPCA_OCSVM.p';
 pathrowfolder_new="104_029"
 datefolder_new="2019_10_16"
