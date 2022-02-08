@@ -5,11 +5,7 @@ Created on Fri Nov 13 15:57:43 2020
 
 Defoliation script with mineral principal components computing.
 
-Считается на основе спектральных каналов, прошедших топографическую коррекцию.
-Вычисляются Direct Principal Components, на основе которых рассчитывается модель
-оконтуривания месторождений
- 
-Вычисление компонентов и их нагрузок отсюда https://scentellegher.github.io/machine-learning/2020/01/27/pca-loadings-sklearn.html
+components loadings are computed thankfully https://scentellegher.github.io/machine-learning/2020/01/27/pca-loadings-sklearn.html
 
 """
 
