@@ -147,12 +147,13 @@ plt.show();
 #save ndvi classes
 saveGeoTiff(ndvi_classes,os.path.join(dir_products_path,"ndvi_classes{}_".format('')+pathrowfolder+"_"+datefolder+".tif"),gdal_object,ColMinInd,RowMinInd);
 
+
 """
 NDVI classes (empirical description)
 0 - water and ice
-1 - rare vegetation
-2 - dense vegetation
-3- open soil
+1 - open soil
+2 - rare vegetation
+3 - dense vegetation
 """
 
 
