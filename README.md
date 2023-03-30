@@ -19,4 +19,5 @@ Number	File name	Stage of research	Description
 10	configuration.py	-	Storing analysis configuration variables
 
 Research conducted with DefMe:
+
 Shevyrev, S, Carranza, EJM. Application of Maximum Entropy for Mineral Prospectivity Mapping in Heavily Vegetated Areas of Greater Kurile Chain with Landsat 8 Data. Ore Geology Review https://doi.org/10.1016/j.oregeorev.2022.104758  
